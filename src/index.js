@@ -1,30 +1,25 @@
-import React from 'react'
-import ReactDOM from 'react-dom'
-import ReactDOMServer from 'react-dom/server'
-import { Router, RouterContext, match, browserHistory, createMemoryHistory } from 'react-router'
-import Template from './Template'
-import Routes from './routes'
+import React from 'react';
+import ReactDOMServer from 'react-dom/server';
+import Root from './Root';
+let props = {};
+import { BrowserRouter } from 'react-router-dom';
+import ReactDOM from 'react-dom';
+import Routes from './Routes';
+import { renderRoutes } from 'react-router-config';
 
-/* Client render (optional) */
-if (typeof document !== 'undefined') {
-  const outlet = document.getElementById('outlet')
-  ReactDOM.render(<Router history={browserHistory} routes={Routes} />, outlet)
+export default function render(locals, callback) {
+    const assets = Object.keys(locals.webpackStats.compilation.assets);
+    const css = assets.filter(value => value.match(/\.css$/));
+    const js = assets.filter(value => value.match(/\.js$/));
+    props = Object.assign({}, locals, { css }, { js }, { location: locals.path });
+    const element = React.createElement(Root, props);
+    const html = ReactDOMServer.renderToString(element);
+    callback(null, `<!DOCTYPE html>${html}`);
 }
 
-/* Exported static site renderer */
-export default (locals, callback) => {
-  const history = createMemoryHistory()
-  const location = history.createLocation(locals.path)
-
-  match({
-    routes: Routes,
-    location: location
-  }, function(error, redirectLocation, renderProps) {
-    var html = ReactDOMServer.renderToStaticMarkup(
-      <Template>
-        <RouterContext {...renderProps} />
-      </Template>
+if (typeof document !== 'undefined') {
+    ReactDOM.hydrate(
+        <BrowserRouter context={{}}>{renderRoutes(Routes)}</BrowserRouter>,
+        document.getElementById('root')
     );
-    callback(null, html)
-  })
 }

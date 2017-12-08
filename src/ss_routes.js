@@ -1,7 +1,5 @@
 module.exports = {
-  routes: [
-    '/',
-    '/tech',
-    '/contact'
-  ]
-}
+    routes: [
+        '/',
+    ]
+};
